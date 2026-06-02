@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "node --watch src/server.js",
     "start": "node src/server.js"
   },
   "dependencies": {
@@ -25,6 +25,5 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
   }
 }
