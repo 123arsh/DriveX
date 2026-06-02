@@ -7,5 +7,5 @@ services:
     branch: main
     rootDir: backend
     buildCommand: npm install
-    startCommand: npm run start
+    startCommand: node src/server.js
     autoDeploy: true
