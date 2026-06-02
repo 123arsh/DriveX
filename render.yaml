@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: drivex-backend
+    env: node
+    plan: free
+    repo: https://github.com/123arsh/DriveX
+    branch: main
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
+    autoDeploy: true
