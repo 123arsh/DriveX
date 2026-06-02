@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: DriveX API
+  version: '1.0.0'
+  description: API documentation for the DriveX vehicle rental platform.
+servers:
+  - url: http://localhost:5000/api
+paths:
+  /auth/signup:
+    post:
+      summary: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                mobile:
+                  type: string
+                country:
+                  type: string
+      responses:
+        '201':
+          description: User created
+  /vehicles:
+    get:
+      summary: Get available vehicles
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle list
