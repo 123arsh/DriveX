@@ -6,6 +6,6 @@ services:
     repo: https://github.com/123arsh/DriveX
     branch: main
     rootDir: backend
-    buildCommand: npm install
-    startCommand: node src/server.js
+    buildCommand: npm ci --production
+    startCommand: npm start
     autoDeploy: true
