@@ -6,7 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second timeout for cold starts
+  timeout: 30000, // 30 second timeout for cold starts on Render
 });
 
 api.interceptors.request.use((config) => {
@@ -21,21 +21,53 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.log(error.response?.data);
+    console.log(error.message);
+
     if (error.response) {
-      // Server responded with error status
-      console.error('API Error:', error.response.status, error.response.data);
-      return Promise.reject(error);
-    } else if (error.request) {
-      // Request made but no response received
-      console.error('No response from server:', error.request);
-      const err = new Error('Network Error: Unable to reach the server. Please check your connection.');
-      err.response = { data: { error: 'Unable to reach the server' } };
+      const status = error.response.status;
+      const data = error.response.data;
+      console.error('API Error:', status, data);
+
+      let errorMsg = data?.error || data?.message || 'Request failed';
+      if (status === 404) {
+        errorMsg = data?.error || 'Endpoint not found. Server may be unavailable.';
+      } else if (status === 401) {
+        errorMsg = data?.error || 'Invalid credentials';
+      } else if (status === 409) {
+        errorMsg = data?.error || 'Email already registered';
+      } else if (status === 500) {
+        errorMsg = data?.error || 'Server error. Please try again later.';
+      } else if (status === 503) {
+        errorMsg = data?.error || 'Server is currently unavailable. Please try again later.';
+      }
+
+      const err = new Error(errorMsg);
+      err.response = error.response;
       return Promise.reject(err);
-    } else {
-      // Error in request setup
-      console.error('Error:', error.message);
-      return Promise.reject(error);
     }
+
+    if (error.request) {
+      console.error('No response from server:', error.request);
+      console.error('Attempted URL:', error.config?.baseURL, error.config?.url);
+      console.error('Request timeout:', error.code);
+
+      let errorMsg = 'Unable to reach the server';
+      if (error.code === 'ECONNABORTED') {
+        errorMsg = 'Request timeout. Server may be starting up or unreachable.';
+      } else if (error.message.includes('CORS')) {
+        errorMsg = 'CORS error: Request blocked by server';
+      } else if (!import.meta.env.VITE_API_URL) {
+        errorMsg = 'API URL is not configured. Set VITE_API_URL in your environment.';
+      }
+
+      const err = new Error(errorMsg);
+      err.response = { data: { error: errorMsg } };
+      return Promise.reject(err);
+    }
+
+    console.error('Error:', error.message);
+    return Promise.reject(error);
   }
 );
 

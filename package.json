@@ -1,15 +1,24 @@
 {
   "name": "drivex",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "frontend",
     "backend",
     "admin"
   ],
   "scripts": {
-    "bootstrap": "npm install",
+    "bootstrap": "npm install --include=optional",
+    "build:frontend": "npm --workspace frontend run build",
+    "build:admin": "npm --workspace admin run build",
     "start:frontend": "npm --workspace frontend run dev",
     "start:backend": "npm --workspace backend run dev",
     "start:admin": "npm --workspace admin run dev"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.61.0",
+    "@rollup/rollup-linux-x64-musl": "4.61.0"
   }
 }
