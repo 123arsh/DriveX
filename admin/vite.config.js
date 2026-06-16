@@ -6,4 +6,16 @@ export default defineConfig({
   server: {
     port: 4174,
   },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      external: ['rollup'],
+    },
+  },
+  resolve: {
+    preferBuiltins: false,
+  },
+  ssr: {
+    external: ['rollup'],
+  },
 });

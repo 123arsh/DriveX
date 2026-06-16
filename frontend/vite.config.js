@@ -8,5 +8,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      external: ['rollup'],
+    },
+  },
+  resolve: {
+    preferBuiltins: false,
+  },
+  ssr: {
+    external: ['rollup'],
   },
 });
