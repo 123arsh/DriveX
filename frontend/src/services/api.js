@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+let csrfToken = null;
+
+const rawBaseURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+const normalizedBaseURL = rawBaseURL.endsWith('/api')
+  ? rawBaseURL
+  : `${rawBaseURL}/api`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: normalizedBaseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -9,11 +16,34 @@ const api = axios.create({
   timeout: 30000, // 30 second timeout for cold starts on Render
 });
 
-api.interceptors.request.use((config) => {
+async function ensureCsrfToken() {
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  const response = await api.get('/csrf-token');
+  csrfToken = response.data?.csrfToken || null;
+  return csrfToken;
+}
+
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('drivex-access-token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (
+    config.url &&
+    !config.url.includes('/auth/') &&
+    !config.url.includes('/csrf-token') &&
+    config.method && ['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())
+  ) {
+    const currentToken = await ensureCsrfToken();
+    if (currentToken && config.headers) {
+      config.headers['X-CSRF-Token'] = currentToken;
+    }
+  }
+
   return config;
 });
 

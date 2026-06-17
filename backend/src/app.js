@@ -10,6 +10,8 @@ import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 const localOrigins = [
   'http://localhost:4173',
   'http://localhost:5173',
@@ -62,8 +64,10 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  optionsSuccessStatus: 204,
 }));
+app.options('*', cors());
 app.use(mongoSanitize());
 app.use(
   rateLimit({
@@ -74,17 +78,30 @@ app.use(
   })
 );
 
-// SPA uses JWT Bearer tokens; skip CSRF for all API routes
-const csrfProtection = csrf({ cookie: true });
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    path: '/',
+  },
+});
+
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) {
+  if (req.method === 'OPTIONS') {
     return next();
   }
+
+  const isAuthRoute = req.path.startsWith('/api/auth/') || req.path === '/api/csrf-token';
+  if (isAuthRoute) {
+    return next();
+  }
+
   return csrfProtection(req, res, next);
 });
 
 app.use('/api', routes);
-app.get('/api/csrf-token', (req, res) => {
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 app.use(errorHandler);
