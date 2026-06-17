@@ -2,7 +2,7 @@
   "name": "drivex",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   },
   "workspaces": [
     "frontend",
